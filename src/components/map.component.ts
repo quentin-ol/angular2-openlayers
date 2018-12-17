@@ -1,11 +1,12 @@
 import {
   Component, OnInit, ElementRef, Input, Output, EventEmitter, AfterViewInit,
-  SimpleChanges, OnChanges
+  SimpleChanges, OnChanges, QueryList, ContentChildren, forwardRef
 } from '@angular/core';
 import {
   Map, MapBrowserEvent, MapEvent, render, ObjectEvent, control,
   interaction
 } from 'openlayers';
+import { LayerComponent, LayersHelper } from './layers';
 
 @Component({
   selector: 'aol-map',
@@ -15,6 +16,8 @@ import {
 export class MapComponent implements OnInit, AfterViewInit, OnChanges {
   public instance: Map;
   public componentType: string = 'map';
+
+  @ContentChildren(LayerComponent, {descendants: true}) childrenLayers: QueryList<LayerComponent>;
 
   @Input() width: string = '100%';
   @Input() height: string = '100%';
@@ -86,5 +89,19 @@ export class MapComponent implements OnInit, AfterViewInit, OnChanges {
 
   ngAfterViewInit() {
     this.instance.updateSize();
+
+    // Update layers when new layers are added/moved/removed
+    this.childrenLayers.changes.subscribe(
+      () => LayersHelper.updateLayers(
+        this.instance.getLayers(),
+        // Filter is a temporary fix waiting for https://github.com/angular/angular/issues/10098
+        this.childrenLayers.filter(l => l.host === this)
+      )
+    );
+    // Initialization: add all the layers
+    // Filter is a temporary fix waiting for https://github.com/angular/angular/issues/10098
+    this.childrenLayers.filter(l => l.host === this).forEach((layer) => {
+      this.instance.getLayers().push(layer.instance);
+    });
   }
 }

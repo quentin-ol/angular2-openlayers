@@ -1,5 +1,5 @@
 import {
-  Component, EventEmitter, Input, OnChanges, OnInit, Optional,
+  Component, EventEmitter, forwardRef, Input, OnChanges, OnInit, Optional,
   SimpleChanges
 } from '@angular/core';
 import { Extent, layer, source } from 'openlayers';
@@ -9,7 +9,8 @@ import { LayerGroupComponent } from './layergroup.component';
 
 @Component({
   selector: 'aol-layer-image',
-  template: `<ng-content></ng-content>`
+  template: `<ng-content></ng-content>`,
+  providers: [{provide: LayerComponent, useExisting: forwardRef(() => LayerImageComponent) }]
 })
 export class LayerImageComponent extends LayerComponent implements OnInit, OnChanges {
   public source: source.Image;

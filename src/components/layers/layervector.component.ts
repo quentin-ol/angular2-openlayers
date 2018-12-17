@@ -1,6 +1,6 @@
 import {
   Component, OnDestroy, OnInit, Input, Optional, OnChanges,
-  SimpleChanges
+  SimpleChanges, forwardRef
 } from '@angular/core';
 import { layer, source } from 'openlayers';
 import { MapComponent } from '../map.component';
@@ -9,7 +9,8 @@ import { LayerGroupComponent } from './layergroup.component';
 
 @Component({
   selector: 'aol-layer-vector',
-  template: `<ng-content></ng-content>`
+  template: `<ng-content></ng-content>`,
+  providers: [{provide: LayerComponent, useExisting: forwardRef(() => LayerVectorComponent) }]
 })
 export class LayerVectorComponent extends LayerComponent implements OnInit, OnDestroy, OnChanges {
   public source: source.Vector;

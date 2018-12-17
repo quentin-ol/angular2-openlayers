@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Optional, SimpleChanges, OnChanges } from '@angular/core';
+import {Component, OnInit, Input, Optional, SimpleChanges, OnChanges, forwardRef} from '@angular/core';
 import { layer, style, StyleFunction } from 'openlayers';
 import { MapComponent } from '../map.component';
 import { LayerComponent } from './layer.component';
@@ -6,7 +6,8 @@ import { LayerGroupComponent } from './layergroup.component';
 
 @Component({
   selector: 'aol-layer-vectortile',
-  template: `<ng-content></ng-content>`
+  template: `<ng-content></ng-content>`,
+  providers: [{provide: LayerComponent, useExisting: forwardRef(() => LayerVectorTileComponent) }]
 })
 export class LayerVectorTileComponent extends LayerComponent implements OnInit, OnChanges {
 

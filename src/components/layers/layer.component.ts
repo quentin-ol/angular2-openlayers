@@ -17,7 +17,7 @@ export abstract class LayerComponent implements OnInit, OnChanges, OnDestroy {
   @Input() precompose: (evt: ol.events.Event) => void;
   @Input() postcompose: (evt: ol.events.Event) => void;
 
-  constructor(protected host: LayerGroupComponent | MapComponent) {
+  constructor(public host: LayerGroupComponent | MapComponent) {
   }
 
   ngOnInit() {
@@ -27,11 +27,9 @@ export abstract class LayerComponent implements OnInit, OnChanges, OnDestroy {
     if (this.postcompose !== null && this.postcompose !== undefined) {
       this.instance.on('postcompose', this.postcompose);
     }
-    this.host.instance.getLayers().push(this.instance);
   }
 
   ngOnDestroy() {
-    this.host.instance.getLayers().remove(this.instance);
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -54,5 +52,37 @@ export abstract class LayerComponent implements OnInit, OnChanges, OnDestroy {
     }
     // console.log('changes detected in aol-layer, setting new properties: ', properties);
     this.instance.setProperties(properties, false);
+  }
+}
+
+
+export class LayersHelper {
+  /**
+   * Update OpenLayers layers (from a Map or a LayerGroup for example) from a given LayerComponent list.
+   * It helps to keep OpenLayers natural orders after adding, deleting and moving layers
+   * @param {ol.Collection<ol.layer.Base>} olLayers
+   * @param {LayerComponent[]} viewLayers
+   */
+  static updateLayers(olLayers: ol.Collection<ol.layer.Base>, viewLayers: LayerComponent[]) {
+    viewLayers.forEach((layer, index) => {
+      let olIndex = olLayers.getArray().indexOf(layer.instance);
+      if (olIndex < 0) {
+        // New layer: we add it to the map
+        olLayers.insertAt(index, layer.instance);
+        // console.log(`~~ updateLayers: new layer at pos ${index}`, layer.instance);
+      } else if (index !== olIndex) {
+        // layer has moved inside the layers list
+        olLayers.removeAt(olIndex);
+        olLayers.insertAt(index, layer.instance);
+        // console.log(`~~ updateLayers: existing layer at pos ${olIndex} moving to pos ${index}`, layer.instance);
+      }
+    });
+    // Remove the layers that have disapeared from childrenLayers
+    if (olLayers.getLength() > viewLayers.length) {
+      for (let i = viewLayers.length; i < olLayers.getLength(); i++) {
+        olLayers.removeAt(i);
+        // console.log(`~~ updateLayers: remove layer at pos ${i}`);
+      }
+    }
   }
 }
